@@ -196,7 +196,7 @@ Trades Orderbook::MatchOrders()
 		if (bidPrice < askPrice)
 			break;
 
-		while (bids.size() && asks.size())
+		while (!bids.empty() && !asks.empty())
 		{
 			auto bid = bids.front();
 			auto ask = asks.front();
@@ -218,18 +218,6 @@ Trades Orderbook::MatchOrders()
 				orders_.erase(ask->GetOrderId());
 			}
 
-			if (bids.empty())
-			{
-				bids_.erase(bidPrice);
-				data_.erase(bidPrice);
-			}
-
-			if (asks.empty())
-			{
-				asks_.erase(askPrice);
-				data_.erase(askPrice);
-			}
-
 			trades.push_back(Trade{
 				TradeInfo{ bid->GetOrderId(), bid->GetPrice(), quantity },
 				TradeInfo{ ask->GetOrderId(), ask->GetPrice(), quantity } 
@@ -237,6 +225,18 @@ Trades Orderbook::MatchOrders()
 
 			OnOrderMatched(bid->GetPrice(), quantity, bid->IsFilled());
 			OnOrderMatched(ask->GetPrice(), quantity, ask->IsFilled());
+		}
+
+		if (bids.empty())
+		{
+			data_.erase(bidPrice);
+			bids_.erase(bidPrice);
+		}
+
+		if (asks.empty())
+		{
+			data_.erase(askPrice);
+			asks_.erase(askPrice);
 		}
 	}
 

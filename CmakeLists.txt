@@ -5,11 +5,28 @@ project(OrderbookEngine LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Automatically find all .cpp and .h files as you create them
-file(GLOB SOURCES "*.cpp")
-file(GLOB HEADERS "*.h")
-
-add_executable(orderbook ${SOURCES} ${HEADERS})
-
 find_package(Threads REQUIRED)
-target_link_libraries(orderbook PRIVATE Threads::Threads)
+
+# The orderbook itself, shared by the app and the tests
+add_library(orderbook_lib Orderbook.cpp)
+target_include_directories(orderbook_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(orderbook_lib PUBLIC Threads::Threads)
+
+add_executable(orderbook main.cpp)
+target_link_libraries(orderbook PRIVATE orderbook_lib)
+
+# Tests (GoogleTest is downloaded on first configure)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
+)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+add_executable(orderbook_tests OrderbookTest/test.cpp)
+target_link_libraries(orderbook_tests PRIVATE orderbook_lib GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(orderbook_tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/OrderbookTest)
