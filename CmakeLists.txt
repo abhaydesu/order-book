@@ -10,3 +10,6 @@ file(GLOB SOURCES "*.cpp")
 file(GLOB HEADERS "*.h")
 
 add_executable(orderbook ${SOURCES} ${HEADERS})
+
+find_package(Threads REQUIRED)
+target_link_libraries(orderbook PRIVATE Threads::Threads)
